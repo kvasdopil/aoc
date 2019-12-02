@@ -1,80 +1,46 @@
 const { assert, file } = require("../../utils");
 
-const step = (prev, cmd) => {
-  const len = prev.length;
-  if (cmd[0] === "s") {
-    let b = len - cmd[1];
-    return prev.map((val, n) => prev[(n + b) % len]);
-  }
-  if (cmd[0] === "x") {
-    const a = cmd[1];
-    const b = cmd[2];
+const solve = (prog, input, end = 1, start = 0) => {
+  let data = input;
+  for (let i = start; i < end; i++) {
+    data = prog.reduce((prev, cmd) => {
+      if (cmd[0] === "s") {
+        const n = prev.length - parseInt(cmd.substring(1), 10);
+        return prev.substring(n) + prev.substring(0, n);
+      }
+      if (cmd[0] === "x") {
+        const args = cmd
+          .substring(1)
+          .split("/")
+          .map(n => parseInt(n, 10));
 
-    const n = prev[a];
-    prev[a] = prev[b];
-    prev[b] = n;
-    return prev;
-  }
-  if (cmd[0] === "p") {
-    const a = prev.indexOf(cmd[1]);
-    const b = prev.indexOf(cmd[2]);
+        const res = prev.split("");
+        res[args[0]] = prev[args[1]];
+        res[args[1]] = prev[args[0]];
+        return res.join("");
+      }
+      if (cmd[0] === "p") {
+        const a = prev.indexOf(cmd[1]);
+        const b = prev.indexOf(cmd[3]);
 
-    const n = prev[a];
-    prev[a] = prev[b];
-    prev[b] = n;
-    return prev;
+        const res = prev.split("");
+        res[a] = prev[b];
+        res[b] = prev[a];
+        return res.join("");
+      }
+      return prev;
+    }, data);
   }
-  return prev;
+  return data;
 };
 
-const solve = (prog, input, limit) => {
-  const data = input.split("");
-  for (let n = 0; n < limit; n++) {
-    data = prog.reduce(step, data);
-    if (n % 100 === 0) {
-      console.log(n);
-    }
-  }
-  return data.join("");
-};
-
-assert(step("abcde".split(""), ["s", 3]), "cdeab".split(""));
-assert(step("abcde".split(""), ["s", 1]), "eabcd".split(""));
-assert(step("eabcd".split(""), ["x", 3, 4]), "eabdc".split(""));
-assert(step("eabdc".split(""), ["p", "e", "b"]), "baedc".split(""));
-
-const parse = cmd => {
-  const c = cmd[0];
-  if (c === "s") {
-    return [c, parseInt(cmd.substring(1), 10)];
-  }
-  if (c === "x") {
-    const args = cmd
-      .substring(1)
-      .split("/")
-      .map(a => parseInt(a, 10));
-    return [c, ...args];
-  }
-  if (c === "p") {
-    return [c, cmd[1], cmd[2]];
-  }
-};
-
-assert(
-  solve(
-    [
-      ["s", 1],
-      ["x", 3, 4],
-      ["p", "e", "b"]
-    ],
-    "abcde",
-    2
-  ),
-  "ceadb"
-);
+assert(solve(["s3"], "abcde"), "cdeab");
+assert(solve(["s1"], "abcde"), "eabcd");
+assert(solve(["s1", "x3/4"], "abcde"), "eabdc");
+assert(solve(["s1", "x3/4", "pe/b"], "abcde"), "baedc");
+assert(solve(["s1", "x3/4", "pe/b"], "abcde", 2), "ceadb");
 
 const prog = file("./16.txt")
   .toString()
-  .split(",")
-  .map(parse);
-console.log(solve(prog, "abcdefghijklmnop", 1000000000));
+  .split(",");
+console.log(solve(prog, "abcdefghijklmnop", 1000000000 % 42));
