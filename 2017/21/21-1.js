@@ -5,6 +5,21 @@ const splitPatterns = SPLIT.map(line =>
   line.split("").map(i => parseInt(i, 16))
 );
 
+const P3 = [
+  "012345678",
+  "036147258",
+  "210543876",
+  "852741630",
+  "678345012",
+  "258147036",
+  "876543210",
+  "630741852"
+];
+const pattern3 = P3.map(pat => pat.split("").map(i => parseInt(i, 10)));
+
+const P2 = ["0123", "2301", "0213", "1302", "1032", "3210", "3120", "2031"];
+const pattern2 = P2.map(pat => pat.split("").map(i => parseInt(i, 10)));
+
 const rots = input => {
   if (input.length === 9) {
     return uniq(pattern3.map(pattern => pattern.map(pi => input[pi]).join("")));
@@ -31,21 +46,6 @@ const parse = rules =>
     };
   });
 
-const P3 = [
-  "012345678",
-  "036147258",
-  "852741630",
-  "876543210",
-  "630741852",
-  "678345012",
-  "210543876",
-  "258147036"
-];
-const pattern3 = P3.map(pat => pat.split("").map(i => parseInt(i, 10)));
-
-const P2 = ["0123", "2301", "1032", "3210"];
-const pattern2 = P2.map(pat => pat.split("").map(i => parseInt(i, 10)));
-
 const start = ".#...####";
 
 const transform = (input, rules) => {
@@ -64,10 +64,10 @@ const uniq = a => {
   return Object.keys(result);
 };
 
-const solve = rules => {
+const solve = (rules, limit) => {
   let patterns = [start];
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < limit; i++) {
     const next = [];
     patterns.forEach(pattern => {
       const tf = transform(pattern, rules);
@@ -86,12 +86,22 @@ const solve = rules => {
     .filter(i => i === "#").length;
 };
 
-const rules = ["../.# => ##./#../...", ".#./..#/### => #..#/..../..../#..#"];
+const rr = ["../.# => ##./#../...", ".#./..#/### => #..#/..../..../#..#"];
+assert(solve(parse(rr), 2), 12);
 
-assert(solve(parse(rules)), 12);
-
-const data = parse(file("./21.txt"));
-console.log(solve(data));
+const data = file("./21.txt");
 
 // 87 wrong
 // 129 hi
+// 125 hi
+// 56 wrong
+
+const p = parse(data);
+let result = {};
+for (const rur of p) {
+  for (const ff of rur.from) {
+    result[ff] = 1;
+  }
+}
+
+console.log(solve(parse(data), 5));
