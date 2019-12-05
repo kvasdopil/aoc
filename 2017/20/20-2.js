@@ -25,10 +25,30 @@ const solve = input => {
       item.p[2] += item.v[2];
     }
 
-    const dists = data.map(item => [dist(item.p), item.n]);
-    dists.sort((a, b) => a[0] - b[0]);
+    for (let i = 0; i < data.length; i++) {
+      for (let j = 0; j < data.length; j++) {
+        if (data[i].removed) {
+          continue;
+        }
+        if (data[j].removed) {
+          continue;
+        }
+        if (data[i] === data[j]) {
+          continue;
+        }
+        if (
+          data[i].p[0] === data[j].p[0] &&
+          data[i].p[1] === data[j].p[1] &&
+          data[i].p[2] === data[j].p[2]
+        ) {
+          data[i].collide = true;
+        }
+      }
+    }
 
-    console.log(dists[0][1]);
+    data.forEach(data => (data.removed = data.removed || data.collide));
+
+    console.log(data.filter(item => !item.removed).length);
   }
 };
 
