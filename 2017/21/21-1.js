@@ -7,13 +7,13 @@ const splitPatterns = SPLIT.map(line =>
 
 const P3 = [
   "012345678",
-  "036147258",
   "210543876",
+  "036147258",
+  "630741852",
+  "258147036",
   "852741630",
   "678345012",
-  "258147036",
-  "876543210",
-  "630741852"
+  "876543210"
 ];
 const pattern3 = P3.map(pat => pat.split("").map(i => parseInt(i, 10)));
 
@@ -105,3 +105,6 @@ for (const rur of p) {
 }
 
 console.log(solve(parse(data), 5));
+
+console.log(rots("#........"));
+console.log(rots("##......."));
