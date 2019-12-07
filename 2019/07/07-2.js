@@ -57,7 +57,7 @@ const execute = context => {
         const b = context.mem[context.pos++];
         const valb = typeB ? b : context.mem[b];
         if (vala !== 0) {
-          n = valb;
+          context.pos = valb;
         }
         continue;
       }
@@ -103,7 +103,7 @@ const execute = context => {
         throw new Error("Unknown opcode", op);
     }
   }
-  throw new Error("Terminated unexpectedly");
+  throw new Error("Terminated unexpectedly", context.pos);
 };
 
 const run = (prog, setting) => {
@@ -116,20 +116,33 @@ const run = (prog, setting) => {
   ];
 
   ctx[0].input.push(0);
+  let val;
 
-  ctx[1].input.push(execute(ctx[0]));
-  ctx[2].input.push(execute(ctx[1]));
-  ctx[3].input.push(execute(ctx[2]));
-  ctx[4].input.push(execute(ctx[3]));
-  ctx[0].input.push(execute(ctx[4]));
+  while (ctx[0].input[0] !== undefined) {
+    val = ctx[0].input[0];
+    if (ctx[0].input[0] === undefined) {
+      break;
+    }
+    ctx[1].input.push(execute(ctx[0]));
+    if (ctx[1].input[0] === undefined) {
+      break;
+    }
+    ctx[2].input.push(execute(ctx[1]));
+    if (ctx[2].input[0] === undefined) {
+      break;
+    }
+    ctx[3].input.push(execute(ctx[2]));
+    if (ctx[3].input[0] === undefined) {
+      break;
+    }
+    ctx[4].input.push(execute(ctx[3]));
+    if (ctx[4].input[0] === undefined) {
+      break;
+    }
+    ctx[0].input.push(execute(ctx[4]));
+  }
 
-  ctx[1].input.push(execute(ctx[0]));
-  // ctx[2].input.push(execute(ctx[1]));
-  // ctx[3].input.push(execute(ctx[2]));
-  // ctx[4].input.push(execute(ctx[3]));
-  // ctx[0].input.push(execute(ctx[4]));
-
-  return ctx.map(c => [c.input, c.pos]);
+  return val;
 };
 
 const solve = p => {
@@ -167,20 +180,19 @@ const solve = p => {
   return [best, max];
 };
 
-// assert(
-//   solve(
-//     "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"
-//   ),
-//   [[9, 8, 7, 6, 5], 139629729]
-// );
-
-console.log(
-  run(
-    parse(
-      "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"
-    ),
-    [9, 8, 7, 6, 5]
-  )
+assert(
+  solve(
+    "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"
+  ),
+  [[9, 8, 7, 6, 5], 139629729]
 );
-// const p = file("07.txt");
-// console.log(solve(p[0]));
+
+assert(
+  solve(
+    "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
+  ),
+  [[9, 7, 8, 5, 6], 18216]
+);
+
+const p = file("07.txt");
+console.log(solve(p[0]));
