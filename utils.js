@@ -1,9 +1,10 @@
-const assert = (a, b) =>
-  console.log(
-    JSON.stringify(a) === JSON.stringify(b)
-      ? "test passed"
-      : `test failed ${a} != ${b}`
-  );
+const assert = (a, b) => {
+  if (JSON.stringify(a) === JSON.stringify(b)) {
+    console.log("test passed");
+  } else {
+    console.log("test failed", a, "!=", b);
+  }
+};
 
 const file = name =>
   require("fs")
@@ -11,4 +12,7 @@ const file = name =>
     .toString()
     .split("\n");
 
-module.exports = { assert, file };
+const uniq = input =>
+  Object.keys(input.reduce((res, a) => ({ ...res, [a]: 1 }), {}));
+
+module.exports = { assert, file, uniq };

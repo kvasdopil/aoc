@@ -1,4 +1,4 @@
-const { assert, file } = require("../../utils");
+const { assert, file, uniq } = require("../../utils");
 
 const parse = input => {
   const result = [];
@@ -12,45 +12,24 @@ const parse = input => {
   return result;
 };
 
-const solve = data =>
-  data.map(p1 => {
-    data.forEach(p2 => {
-      p2.visible = true;
-    });
+const r = (x, y) => {
+  return [x > 0, y > 0, x / y].join();
+};
 
-    data.forEach(p2 => {
-      if (p1 === p2) {
-        return;
+const solve = data => {
+  const items = data.map(a => {
+    const res = [];
+    data.forEach(b => {
+      if (a != b) {
+        res.push(r(b.x - a.x, b.y - a.y));
       }
-
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const r = dx / dy;
-
-      data.forEach(p3 => {
-        if (p3 === p1 || p3 === p2) {
-          return;
-        }
-
-        const ddx = p3.x - p1.x;
-        const ddy = p3.y - p1.y;
-        if (Math.sqrt(ddx * ddx + ddy * ddy) < Math.sqrt(dx * dx + dy * dy)) {
-          return;
-        }
-        if (ddy === 0 && dy === 0) {
-          p3.visible = false;
-        }
-        if (ddx === 0 && dx === 0) {
-          p3.visible = false;
-        }
-        if (Math.abs(ddx / ddy - dx / dy) < 0.0001) {
-          p3.visible = false;
-        }
-      });
     });
 
-    return data.filter(d => d.visible !== false).length;
+    return uniq(res).length;
   });
+
+  return items;
+};
 
 const maxPos = data =>
   data.reduce((prev, val, pos) => (prev.val < val ? { val, pos } : prev), {
@@ -60,7 +39,7 @@ const maxPos = data =>
 
 const i1 = [".#..#", ".....", "#####", "....#", "...##"];
 const r1 = maxPos(solve(parse(i1)));
-assert(r1.pos, 8);
+assert(r1, { val: 8, pos: 8 });
 
 const i2 = [
   "......#.#.",
@@ -74,9 +53,59 @@ const i2 = [
   "##...#..#.",
   ".#....####"
 ];
-const r2 = maxPos(solve(parse(i2)));
-assert(r2.val, 33);
+assert(maxPos(solve(parse(i2))).val, 33);
+
+const i3 = [
+  "#.#...#.#.",
+  ".###....#.",
+  ".#....#...",
+  "##.#.#.#.#",
+  "....#.#.#.",
+  ".##..###.#",
+  "..#...##..",
+  "..##....##",
+  "......#...",
+  ".####.###."
+];
+assert(maxPos(solve(parse(i3))).val, 35);
+
+const i4 = [
+  ".#..#..###",
+  "####.###.#",
+  "....###.#.",
+  "..###.##.#",
+  "##.##.#.#.",
+  "....###..#",
+  "..#.#..#.#",
+  "#..#.#.###",
+  ".##...##.#",
+  ".....#.#.."
+];
+assert(maxPos(solve(parse(i4))).val, 41);
+
+const i5 = [
+  ".#..##.###...#######",
+  "##.############..##.",
+  ".#.######.########.#",
+  ".###.#######.####.#.",
+  "#####.##.#.##.###.##",
+  "..#####..#.#########",
+  "####################",
+  "#.####....###.#.#.##",
+  "##.#################",
+  "#####.##.###..####..",
+  "..######..##.#######",
+  "####.##.####...##..#",
+  ".#####..#.######.###",
+  "##...#.##########...",
+  "#.##########.#######",
+  ".####.#.###.###.#.##",
+  "....##.##.###..#####",
+  ".#.#.###########.###",
+  "#.#.#.#####.####.###",
+  "###.##.####.##.#..##"
+];
+assert(maxPos(solve(parse(i5))).val, 210);
 
 const data = parse(file("./10.txt"));
-
-console.log(maxPos(solve(data))); // 256 low
+console.log(maxPos(solve(data)));
