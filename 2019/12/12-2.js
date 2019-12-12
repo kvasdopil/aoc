@@ -19,13 +19,17 @@ const parse = lines =>
   });
 
 const step = data => {
-  for (const i of data) {
-    for (const j of data) {
-      if (i != j) {
-        i.vx += Math.sign(j.x - i.x);
-        i.vy += Math.sign(j.y - i.y);
-        i.vz += Math.sign(j.z - i.z);
-      }
+  for (let i = 0; i < data.length; i++) {
+    for (let j = 0; j < i; j++) {
+      let a = Math.sign(data[j].x - data[i].x);
+      let b = Math.sign(data[j].y - data[i].y);
+      let c = Math.sign(data[j].z - data[i].z);
+      data[i].vx += a;
+      data[i].vy += b;
+      data[i].vz += c;
+      data[j].vx -= a;
+      data[j].vy -= b;
+      data[j].vz -= c;
     }
   }
 
@@ -36,27 +40,37 @@ const step = data => {
   }
 };
 
-const solve = text => {
+const measure = (text, fld) => {
   const data = parse(text);
-  const first = data.map(item => ({ ...item }));
 
-  let i = 1;
+  let i = 0;
   while (true) {
     i++;
     step(data);
 
     if (
-      data.every(
-        (item, n) =>
-          item.x === first[n].x &&
-          item.y === first[n].y &&
-          item.z === first[n].z
-      )
+      data[0][fld] === 0 &&
+      data[1][fld] === 0 &&
+      data[2][fld] === 0 &&
+      data[3][fld] === 0
     ) {
       return i;
     }
+  }
+};
 
-    i % 10000000 === 0 ? console.log(i) : null;
+const solve = text => {
+  const x = measure(text, "vx");
+  const y = measure(text, "vy");
+  const z = measure(text, "vz");
+
+  let i = 0;
+  const n = Math.min(x, Math.min(y, z));
+  while (true) {
+    i += n;
+    if (i % x === 0 && i % y === 0 && i % z === 0) {
+      return 2 * i;
+    }
   }
 };
 

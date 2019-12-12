@@ -36,19 +36,22 @@ const step = data => {
   }
 };
 
-const solve = (text, num) => {
-  const data = parse(text);
-  for (let i = 0; i < num; i++) {
-    step(data);
-  }
-
-  return data
+const sum = data =>
+  data
     .map(
       pt =>
         (Math.abs(pt.x) + Math.abs(pt.y) + Math.abs(pt.z)) *
         (Math.abs(pt.vx) + Math.abs(pt.vy) + Math.abs(pt.vz))
     )
     .reduce((a, b) => a + b, 0);
+
+const solve = (text, num) => {
+  const data = parse(text);
+  for (let i = 0; i < num; i++) {
+    step(data);
+  }
+
+  return sum(data);
 };
 
 const i1 = [
