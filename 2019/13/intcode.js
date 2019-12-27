@@ -4,10 +4,11 @@ const context = (prog, input) => ({
   pos: 0,
   base: 0,
   mem: prog.reduce((res, val, i) => ({ ...res, [i]: val }), {}),
-  input
+  input,
+  output: []
 });
 
-const execute = context => {
+function* execute(context) {
   const getv = type => {
     const p = context.mem[context.pos++];
     if (type === 2) {
@@ -50,16 +51,14 @@ const execute = context => {
 
       case 3: {
         const a = geta(typeA);
-        if (context.input.length === 0) {
-          throw new Error("underflow");
-        }
-        context.mem[a] = context.input.shift();
+        context.mem[a] = yield;
         continue;
       }
 
       case 4: {
         const vala = getv(typeA);
-        return vala;
+        context.output.push(vala);
+        continue;
       }
 
       case 5: {
@@ -111,7 +110,7 @@ const execute = context => {
     }
   }
   throw new Error("Terminated unexpectedly", context.pos);
-};
+}
 
 module.exports = {
   parse,

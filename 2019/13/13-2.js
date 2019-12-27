@@ -26,36 +26,44 @@ const build = code => {
   const ct = context(code, [0]);
   ct.mem[0] = 2;
 
-  let ball19;
-  let ball20;
-  let pos;
+  const prog = execute(ct);
 
+  let done = false;
   const map = {};
-  while (true) {
-    const x = execute(ct);
-    if (x === undefined) {
-      return map;
-    }
-    const y = execute(ct);
-    const t = execute(ct);
+  let ball = { x: 0, y: 0 };
+  let pad = { x: 0, y: 0 };
+  let tgt = 0;
 
-    map[`${x},${y}`] = t;
-    if (t === 3) {
-      pos = x;
-      console.log("y", y);
-    }
-    if (t === 4) {
-      if (y === 19) {
-        ball19 = x;
+  while (true) {
+    while (ct.output.length) {
+      const x = ct.output.shift();
+      const y = ct.output.shift();
+      const t = ct.output.shift();
+
+      if (t === 3) {
+        pad = { x, y };
       }
-      if (y === 20) {
-        ball20 = x;
+      if (t === 4) {
+        if (y === ball.y + 1) {
+          const dx = ball.x - x;
+          const he = 20 - y;
+          tgt = x - dx * he;
+        } else {
+          tgt = x;
+        }
+        ball = { x, y };
       }
-      // console.log(ball - pos);
-      ct.input.push(0);
-      // pos += Math.sign(ball - pos);
-      print(map);
+
+      map[`${x},${y}`] = t;
     }
+    print(map);
+
+    if (done) {
+      return;
+    }
+
+    const sign = Math.sign(tgt - pad.x);
+    done = prog.next(sign).done;
   }
 };
 
