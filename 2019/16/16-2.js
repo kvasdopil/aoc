@@ -16,13 +16,10 @@ function* pattern(n) {
 }
 
 const process = input =>
-  input.map((val, n) => {
+  input.map((_, n) => {
     const p = pattern(n + 1);
-    return (
-      Math.abs(
-        input.map(val => val * p.next().value).reduce((a, b) => a + b, 0)
-      ) % 10
-    );
+    const v = input.reduce((res, val) => res + val * p.next().value, 0);
+    return Math.abs(v) % 10;
   });
 
 const solve = (input, count) => {
