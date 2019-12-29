@@ -19,9 +19,9 @@ const parse = lines => {
   );
 };
 
-const solve = tf => {
+const solve = (tf, FUEL = 1) => {
   const transforms = parse(tf);
-  const resources = { FUEL: 1 };
+  const resources = { FUEL };
 
   const transform = (checkAmount = true) => {
     for (const res in resources) {
@@ -35,15 +35,27 @@ const solve = tf => {
         if (transforms[res].amount > resources[res]) {
           continue;
         }
+
+        const rem = resources[res] % transforms[res].amount;
+        const ct = Math.floor(resources[res] / transforms[res].amount);
+
+        resources[res] = rem;
+        for (const res2 in transforms[res].req) {
+          if (resources[res2] === undefined) {
+            resources[res2] = 0;
+          }
+          resources[res2] += transforms[res].req[res2] * ct;
+        }
+      } else {
+        resources[res] -= transforms[res].amount;
+        for (const res2 in transforms[res].req) {
+          if (resources[res2] === undefined) {
+            resources[res2] = 0;
+          }
+          resources[res2] += transforms[res].req[res2];
+        }
       }
 
-      resources[res] -= transforms[res].amount;
-      for (const res2 in transforms[res].req) {
-        if (resources[res2] === undefined) {
-          resources[res2] = 0;
-        }
-        resources[res2] += transforms[res].req[res2];
-      }
       if (resources[res] === 0) {
         delete resources[res];
       }
@@ -55,31 +67,8 @@ const solve = tf => {
   while (transform()) {}
   while (transform(false)) {}
 
-  return resources.ORE;
+  return 1000000000000 - resources.ORE;
 };
-
-const p1 = [
-  "10 ORE => 10 A",
-  "1 ORE => 1 B",
-  "7 A, 1 B => 1 C",
-  "7 A, 1 C => 1 D",
-  "7 A, 1 D => 1 E",
-  "7 A, 1 E => 1 FUEL"
-];
-
-assert(solve(p1), 31);
-
-const p2 = [
-  "9 ORE => 2 A",
-  "8 ORE => 3 B",
-  "7 ORE => 5 C",
-  "3 A, 4 B => 1 AB",
-  "5 B, 7 C => 1 BC",
-  "4 C, 1 A => 1 CA",
-  "2 AB, 3 BC, 4 CA => 1 FUEL"
-];
-
-assert(solve(p2), 165);
 
 const p3 = [
   "157 ORE => 5 NZVS",
@@ -93,7 +82,7 @@ const p3 = [
   "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"
 ];
 
-assert(solve(p3), 13312);
+assert(solve(p3, 82892753), 0); // 13312
 
 const p4 = [
   "2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG",
@@ -110,7 +99,7 @@ const p4 = [
   "176 ORE => 6 VJHF"
 ];
 
-assert(solve(p4), 180697);
+assert(solve(p4, 5586022), 0); // 180697
 
 const p5 = [
   "171 ORE => 8 CNZTR",
@@ -132,6 +121,6 @@ const p5 = [
   "5 BHXH, 4 VRPVC => 5 LTCX"
 ];
 
-assert(solve(p5), 2210736);
+assert(solve(p5, 460664), 0); // 2210736
 
-console.log(solve(file("./14.txt")));
+console.log(solve(file("./14.txt"), 4200533));
