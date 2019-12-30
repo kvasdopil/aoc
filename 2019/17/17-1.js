@@ -13,13 +13,6 @@ const map = ct.output
   .split("\n")
   .map(line => line.split(""));
 
-const dirs = [
-  { x: -1, y: 0 },
-  { x: 1, y: 0 },
-  { x: 0, y: -1 },
-  { x: 0, y: 1 }
-];
-
 let count = 0;
 map.forEach((line, Y) =>
   line.forEach((char, X) => {
@@ -45,5 +38,7 @@ map.forEach((line, Y) =>
     }
   })
 );
+
+console.log(map.map(line => line.join("")));
 
 console.log(count);
