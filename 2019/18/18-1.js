@@ -1,27 +1,115 @@
-const { assert, file } = require("../../utils");
+const { assert } = require('../../utils');
 
-const map = file("./18.txt").map(line => line.split(""));
+const n = [[-1, 0], [1, 0], [0, 1], [0, -1]];
 
-const fx = () => {
-  for (let y = 1; y < map.length - 2; y++) {
-    for (let x = 1; x < map[y].length - 2; x++) {
-      if (map[y][x] === ".") {
-        const ns = [
-          map[y + 1][x],
-          map[y - 1][x],
-          map[y][x + 1],
-          map[y][x - 1]
-        ].filter(a => a === "#");
-        if (ns.length === 3) {
-          map[y][x] = "#";
-          return true;
+const findPaths = (input, start) => {
+  const result = input.map(line => line.map(ch => ch === '#' ? '#' : '.'));
+
+
+  const [x, y] = start;
+  result[y][x] = 0;
+
+  let i = 0;
+
+  while (true) {
+    let working = false;
+    result.forEach((line, y) =>
+      line.forEach((ch, x) => {
+        if (ch !== i) {
+          return;
         }
-      }
+        n.forEach(([xx, yy]) => {
+          if (result[y + yy][x + xx] === '.') {
+            working = true;
+            result[y + yy][x + xx] = i + 1;
+          }
+        })
+      })
+    )
+    if (!working) {
+      break;
     }
+    i++;
   }
-  return false;
-};
 
-while (fx()) {}
+  return result;
+}
 
-map.map(line => console.log(line.join("").replace(/#/g, " ")));
+const solve = (input) => {
+  const doors = {};
+  const keys = {};
+  const items = {};
+
+  const map = input.map(line => line.split(''));
+
+  map.forEach((line, y) =>
+    line.forEach((ch, x) => {
+      if (ch >= 'A' && ch <= 'Z') {
+        doors[ch] = [x, y];
+      } else if (ch >= 'a' && ch <= 'z') {
+        keys[ch] = [x, y];
+      } else {
+        items[ch] = [x, y];
+      }
+    })
+  );
+
+  let totalSteps = 0;
+  let pos = items['@'];
+  while (true) {
+    for (let door in doors) {
+      const [x, y] = doors[door];
+      map[y][x] = '#';
+    }
+    const paths = findPaths(map, pos);
+    const nextPoints = Object.keys(keys)
+      .map(key => {
+        const [x, y] = keys[key];
+        return {
+          key,
+          steps: paths[y][x],
+        }
+      })
+      .filter(({ steps }) => steps !== '.');
+
+    console.log(nextPoints.map(({ key }) => key));
+
+    const nextPoint = nextPoints
+      .sort((a, b) => a.steps - b.steps)
+      .pop();
+
+    const nextKey = nextPoint.key;
+    totalSteps += nextPoint.steps;
+
+    console.log('moving to', nextKey, keys[nextKey]);
+    pos = keys[nextKey];
+
+    if (doors[nextKey.toUpperCase()]) {
+      const [x, y] = doors[nextKey.toUpperCase()];
+      map[y][x] = '.';
+      delete doors[nextKey.toUpperCase()];
+    } else {
+      return totalSteps;
+    }
+
+    delete keys[nextKey];
+  }
+}
+
+const i1 = [
+  '#########',
+  '#b.A.@.a#',
+  '#########',
+];
+
+assert(solve(i1), 8);
+
+const i2 = [
+  '########################',
+  '#f.D.E.e.C.b.A.@.a.B.c.#',
+  '######################.#',
+  '#d.....................#',
+  '########################',
+]
+
+console.log(solve(i2));
