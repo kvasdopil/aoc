@@ -1,8 +1,8 @@
 const { file, assert } = require('../../utils')
 
 const mostCommonBit = (lines, bit) => {
-  const val = lines.reduce((prev, line) => line[bit] > 0 ? prev + 1 : prev - 1, 0);
-  return val > 0 ? 1 : (val < 0 ? 0 : 1);
+  const val = lines.reduce((prev, line) => prev + (line[bit] > 0 ? 1 : -1), 0);
+  return (val >= 0) ? 1 : 0;
 }
 
 const work = (lines) => {

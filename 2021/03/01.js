@@ -1,14 +1,14 @@
 const { file, assert } = require('../../utils')
 
 const mostCommonBit = (lines, bit) => {
-  const val = lines.reduce((prev, line) => line[bit] > 0 ? prev + 1 : prev - 1, 0);
-  return val > 0 ? '1' : '0';
+  const val = lines.reduce((prev, line) => prev + (line[bit] > 0 ? 1 : -1), 0);
+  return (val >= 0) ? 1 : 0;
 }
 
 const work = (lines) => {
   const values = lines.map(line => line.split('').map(i => parseInt(i)))
   const gamma = values[0].map((_, bit) => mostCommonBit(values, bit));
-  const eps = gamma.map(i => i === '0' ? '1' : '0');
+  const eps = gamma.map(i => 0 + !i);
   const g = parseInt(gamma.join(''), 2)
   const e = parseInt(eps.join(''), 2);
   return g * e;
