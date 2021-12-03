@@ -17,5 +17,4 @@ const test = `199
 263`.trim().split("\n");
 
 assert(work(test), 7);
-assert(work(file('input.txt')), 1752)
-console.log(work(file('input.txt')))
+assert(work(file('input.txt')), 1752);

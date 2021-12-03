@@ -18,5 +18,4 @@ const test = `199
 263`.trim().split("\n");
 
 assert(work(test), 5);
-assert(work(file('input.txt')), 1781)
-console.log(work(file('input.txt')))
+assert(work(file('input.txt')), 1781);

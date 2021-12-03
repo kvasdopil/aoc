@@ -21,4 +21,3 @@ forward 2`.trim().split("\n");
 
 assert(work(test), 150);
 assert(work(file('input.txt')), 1815044);
-console.log(work(file('input.txt')))
