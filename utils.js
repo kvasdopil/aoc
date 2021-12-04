@@ -1,3 +1,5 @@
+const { isNumberObject } = require("util/types");
+
 const assert = (a, b = true) => {
   if (JSON.stringify(a) === JSON.stringify(b)) {
     console.log("test passed");
@@ -15,4 +17,32 @@ const file = name =>
 const uniq = input =>
   Object.keys(input.reduce((res, a) => ({ ...res, [a]: 1 }), {}));
 
-module.exports = { assert, file, uniq };
+function permutation(array) {
+  // Find non-increasing suffix
+  var i = array.length - 1;
+  while (i > 0 && array[i - 1] >= array[i])
+    i--;
+  if (i <= 0)
+    return false;
+
+  // Find successor to pivot
+  var j = array.length - 1;
+  while (array[j] <= array[i - 1])
+    j--;
+  var temp = array[i - 1];
+  array[i - 1] = array[j];
+  array[j] = temp;
+
+  // Reverse suffix
+  j = array.length - 1;
+  while (i < j) {
+    temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+    i++;
+    j--;
+  }
+  return true;
+}
+
+module.exports = { assert, file, uniq, permutation };

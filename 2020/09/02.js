@@ -22,29 +22,26 @@ const findInvalid = (nrs, size) => {
 }
 
 const findSum = (data, target) => {
-  for (let i = 0; i < data.length; i++) {
-    let j = i;
+  let i = 0;
+  let j = 0;
+  for (; i < data.length; i++) {
+    j = i;
     let sum = data[i];
     while (sum < target) {
       j++;
       sum += data[j];
     }
-    if (sum === target) {
-      let min = data[i];
-      let max = data[i];
-      for (; i <= j; i++) {
-        min = Math.min(data[i], min);
-        max = Math.max(data[i], max);
-      }
-      return min + max;
-    }
+    if (sum === target) return [i, j];
   }
 }
 
 const work = (lines, size) => {
   const numbers = lines.map(line => parseInt(line, 10));
   const invalid = findInvalid(numbers, size);
-  return findSum(numbers, invalid);
+  const [start, end] = findSum(numbers, invalid);
+
+  const result = numbers.slice(start, end);
+  return Math.min(...result) + Math.max(...result)
 }
 
 const test = `35
