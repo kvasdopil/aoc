@@ -1,20 +1,18 @@
 const { file, assert } = require('../../utils')
 
-const calcDiffs = (data) => {
-  let one = 0;
-  let three = 0;
-  data.forEach((val, i) => {
-    if (!i) return;
-    if (val - data[i - 1] === 1) one++;
-    if (val - data[i - 1] === 3) three++;
-  });
-  return [one, three];
-}
-
 const work = (lines) => {
   const data = lines.map(line => parseInt(line, 10));
   data.sort((a, b) => a - b);
-  return calcDiffs([0, ...data, data[data.length - 1] + 3]);
+
+  const d2 = [0, ...data]; // add leading 0
+
+  const diffs = d2.map((val, i) => val - d2[i - 1]); // convert numbers to difference btw adjacent numbers
+  diffs.shift(); // first item is NaN, ditch it
+
+  const ones = diffs.filter(n => n === 1).length;
+  const threes = diffs.filter(n => n === 3).length;
+
+  return [ones, threes + 1];
 }
 
 const test = `16

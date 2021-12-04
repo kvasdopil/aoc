@@ -3,8 +3,8 @@ const { file, assert } = require('../../utils')
 /*
 This one is tricky and fun.
 We have an increasing series of numbers starting with 0, interval btw any adjacent numbers is 1, 2 or 3.
-Any numbers can be excluded from the series, if the sequence still valid that creates a new combination.
-The answer is number of all possible combinations for a given sequence.
+Any numbers can be excluded from the series, if the sequence is still valid that creates a new combination.
+We need to find a number of all possible combinations for a given sequence.
 */
 
 const work = (lines) => {
@@ -26,9 +26,9 @@ const work = (lines) => {
   return diffs.join('').split('3').map(item => {
     if (item === '') return 1;
     if (item === '1') return 1;
-    if (item === '11') return 2;
-    if (item === '111') return 4;
-    if (item === '1111') return 7;
+    if (item === '11') return 2; // '11' and '2'
+    if (item === '111') return 4; // '111', '21', '12' and '3'
+    if (item === '1111') return 7; // '1111', '211', '121', '112', '22', '31' and '13'
   }).reduce((a, b) => a * b, 1);
 }
 
