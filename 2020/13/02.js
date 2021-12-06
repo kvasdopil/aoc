@@ -1,25 +1,27 @@
 const { file, assert } = require('../../utils')
 
-const findPair = (b1, b2) => {
+const findP1 = (b1, b2) => {
   for (let i = 0; i < 10000; i++)
     for (let j = 0; j < 10000; j++)
       if (b1[0] * i === b2[0] * j - b2[1])
-        return [i, j];
+        return i;
 }
 
-const work = (line, n0 = 0) => {
+const work = (line, t0 = 0, dn = null) => {
   const b = line.split(',').map(a => parseInt(a, 10)).map((a, n) => [a, n]).filter(([a, n]) => a);
 
-  const [p1, p2] = findPair(b[0], b[1]);
+  const p1 = findP1(b[0], b[1]);
 
-  const mul = b[0][0] * b[1][0];
-  let time = b[0][0] * p1 + mul;
-  let n = n0;
+  const mul = dn || (b[0][0] * b[1][0]);
+  let time = t0 || (b[0][0] * p1 + mul);
+
+  let i = 0;
   while (true) {
-    n++;
-    if (n % 10000000 === 0) console.log(n / 10000000);
-    if (b.every(([a, n]) => (time + n) % a === 0))
+    i++;
+    if (i % 10000000 === 0) console.log(i / 10000000);
+    if (b.every(([a, n]) => (time + n) % a === 0)) {
       return time;
+    }
     time += mul;
   }
 }
@@ -30,4 +32,5 @@ assert(work(`67,7,59,61`), 754018);
 assert(work(`67,x,7,59,61`), 779210);
 assert(work(`67,7,x,59,61`), 1261476);
 assert(work(`1789,37,47,1889`), 1202161486);
-assert(work(file('input.txt')[1], 100000000000000), 0);
+assert(work(`29,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,37,x,x,x,x,x,409,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,17,13,19,x,x,x,23,x,x,x,x,x,x,x,353,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,41`, 9711846076, 107976815137), 408270049879073);
+
