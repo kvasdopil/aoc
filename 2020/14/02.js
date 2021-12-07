@@ -1,95 +1,89 @@
 const { file, assert } = require('../../utils')
 
+// Oh, this is a good one
+// A naive approach would be:
+// a) going thru the whole 36-bit address space for each instruction
+// b) checking if the address suits the current mask and address 
+// c) writing the value
+// However, this is impractical, as cycling 0...2^36 takes forever.
+//
+// Instead as we can see, instruction addresses never exceed 0xffff, so we can split the address space.
+//
+// Step one) Find all the short addresses (0x0000-0xffff) that are affected, and for each one
+// store a list of instructions (aka full address mask + value)
+//
+// Step two) For each of the addresses perform 'a naive approach' algorythim on the rest of address space.
+// That would only have 20bit size, pretty manageable.
+
+const parseMask = (mask) => {
+  const mx = parseInt(mask.split('').map(c => c === 'X' ? '0' : '1').join(''), 2);
+  const m1 = parseInt(mask.split('').map(c => c === '1' ? '1' : '0').join(''), 2);
+
+  return [mx, m1];
+}
+
+const calcSubgroup = (subgroup) => {
+  const memory = {};
+
+  // An optimization: for a single entry we don't need to go thru the address space at all
+  // instead, we just calculate a number of possible addresses = 2^(number of X's in mask)
+  // and multuply by value
+  if (subgroup.length === 1) {
+    const [mask, value] = subgroup[0];
+    return value * Math.pow(2, mask.split('').filter(c => c === 'X').length);
+  }
+
+  // For each entry go thru the address space, find suitable addresses and write the value
+  for (const entry of subgroup) {
+    const [mask, value] = entry;
+    const [ignored, m1] = parseMask(mask);
+
+    for (let i = 0; i <= 0b11111111111111111111; i++)
+      if ((i & ignored) === (m1 & ignored))
+        memory[i] = value;
+  }
+
+  return Object.keys(memory).reduce((a, key) => a + memory[key], 0);
+}
+
 const work = (lines) => {
-  let mask = 0;
-  let ignored = 0;
-  let prefix = '';
-  const values = {};
+  let mask1 = 0;
+  let maskX = 0;
+  let groupMask = '';
+  const groups = {};
+
   for (const line of lines) {
     if (/^mask = /.test(line)) {
-      const maskline = line.split(' ').pop()
-      const M = parseInt(maskline.split('').map(c => c === '1' ? '1' : '0').join(''), 2);
-      const I = parseInt(maskline.split('').map(c => c === 'X' ? '0' : '1').join(''), 2);
-      mask = M & 0b1111111111111111;
-      ignored = I & 0b1111111111111111;
-      prefix = maskline.substring(0, 20);
+      const maskLine = line.split(' ').pop();
+      const [I, M] = parseMask(maskLine);
+
+      // On the 1st step we only need lower 16 bit of the mask
+      mask1 = M & 0b1111111111111111;
+      maskX = I & 0b1111111111111111;
+      groupMask = maskLine.substring(0, 20);
 
       continue;
     }
 
     const [, addr, v] = /^mem\[([0-9]+)\] = ([0-9]+)$/.exec(line);
-    // console.log(
-    //   //Number(prefix).toString(2).padStart(20, '0'),
-    //   Number((addr & ignored) | mask).toString(2).padStart(16, '0'),
-    //   Number(ignored).toString(2).padStart(16, '0'),
-    // );
-    for (let i = 0; i < 0xffff; i++) {
-      if ((i & ignored) === ((addr | mask) & ignored)) {
-        // console.log(i);
-        if (!values[i]) values[i] = [];
-        values[i].push([prefix, parseInt(v, 10)]);
-      }
-    }
-  }
+    const value = parseInt(v, 10);
+    const address = addr | mask1;
 
-  // for (const key of Object.keys(values))
-  //   console.log(key, values[key]);
-
-  console.log(Object.keys(values).length)
-  const kk = Object.keys(values);
-  for (const k of kk)
-    if (values[k].length < 2)
-      delete values[k];
-
-  // console.log(Object.keys(values).length)
-  for (const k of Object.keys(values)) {
-    // console.log(values[k]);
-    const items = values[k];
-    for (let i = 1; i < items.length; i++)
-      for (let j = 0; j < i; j++) {
-        let good = true;
-        for (let m = 0; m < 20; m++)
-          if (items[i][m] !== items[j][m] && items[i][m] !== 'X' && items[j][m] !== 'X') {
-            good = false;
-            break;
-          }
-        if (good) {
-          console.log(items[j])
-        }
+    // Go thru the address space, find a suitable address and store the value and mask prefix
+    for (let i = 0; i <= 0xffff; i++)
+      if ((i & maskX) === (address & maskX)) {
+        if (!groups[i]) groups[i] = [];
+        groups[i].push([groupMask, value]);
       }
   }
-  // let mask = [];
-  // const memory = {};
 
-  // for (const line of lines) {
-  //   if (/^mask = /.test(line)) {
-  //     mask = line.split(' ').pop().split('');
-  //     continue;
-  //   }
-
-  //   const [, addr, v] = /^mem\[([0-9]+)\] = ([0-9]+)$/.exec(line);
-  //   const val = Number(v).toString(2).padStart(mask.length, '0');
-  //   // const res = mask.map((bit, n) => bit === 'X' ? val[n] : bit);
-
-  //   let m2 = [...mask].replace('X', 'a');
-  //   while(true) {
-  //     for(let i = 0; i<mask.length; i++)
-  //     {
-  //       if (mask[i])
-  //     }
-  //   }
-
-  //   memory[addr] = res;
-  // }
-  // return Object.values(memory)
-  //   .map(mem => parseInt(mem.join(''), 2))
-  //   .reduce((a, b) => a + b, 0)
+  return Object.keys(groups).reduce((sum, key) => sum + calcSubgroup(groups[key]), 0);
 }
 
-// const test = `mask = 000000000000000000000000000000X1001X
-// mem[42] = 100
-// mask = 00000000000000000000000000000000X0XX
-// mem[26] = 1`.trim().split("\n");
+const test = `mask = 000000000000000000000000000000X1001X
+mem[42] = 100
+mask = 00000000000000000000000000000000X0XX
+mem[26] = 1`.trim().split("\n");
 
-// assert(work(test), 165);
-assert(work(file('input.txt')), 15018100062885);
+assert(work(test), 208);
+assert(work(file('input.txt')), 5724245857696);
