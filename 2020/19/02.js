@@ -81,31 +81,41 @@ const work = (lines) => {
   }
 
   const r31 = {};
-  // const r42 = {};
   for (const seq of rules[31])
     r31[seq.join('')] = 1;
-  // for (const seq of rules[31])
-  //   r42[seq.join('')] = 1;
 
-  // for (const key of Object.keys(r31)) {
-  //   if (!r42[key]) console.log('only in 31', key);
-  // }
+  const r42 = {};
+  for (const seq of rules[42])
+    r42[seq.join('')] = 1;
 
-  const len = Object.keys(r31)[0].length;
-  console.log(len);
   return messages.filter(m => {
     let str = m;
-    console.log('s', str);
+    const slices = [];
+    const len = Object.keys(r31)[0].length;
     while (str.length) {
-      const sub = str.slice(0, len);
-      console.log(sub);
-      if (!r31[sub]) return false;
+      slices.push(str.slice(0, len));
       str = str.slice(len);
     }
+
+    let num42 = 0;
+    let num31 = 0;
+    while (r42[slices[0]]) {
+      slices.shift();
+      num42++;
+    }
+
+    while (r31[slices[0]]) {
+      slices.shift();
+      num31++;
+    }
+
+    if (slices.length) return false;
+    if (num31 === 0) return false;
+    if (num31 >= num42) return false;
     return true;
   }).length;
-  // console.log(Object.keys(r31).length, Object.keys(r42).length)
 }
+
 
 const test = `0: 4 1 5
 1: 2 3 | 3 2
@@ -120,4 +130,4 @@ abbbab
 aaabbb
 aaaabbb`.trim().split("\n");
 
-assert(work(file('input.txt')), 132);
+assert(work(file('input.txt')), 306);
