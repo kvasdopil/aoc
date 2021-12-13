@@ -1,29 +1,7 @@
 const { file, assert } = require('../../utils')
 
-const parse = (lines) => {
-  lines.push("");
-  let result = [];
-  let tile = [];
-  let number = 0;
-  for (const line of lines) {
-    const re = /Tile ([0-9]+):/.exec(line);
-    if (re) {
-      number = re[1];
-      continue;
-    }
 
-    if (line === "") {
-      result.push({ number, tile });
-      tile = [];
-      continue;
-    }
-
-    tile.push(line.split(''));
-  }
-  return result;
-}
-
-const bitmaps = ({ tile }) => {
+const bitmaps = (tile) => {
   const topA = tile[0].map(ch => ch === '#' ? '1' : '0');
   const btmA = tile[tile.length - 1].map(ch => ch === '#' ? '1' : '0');
   const lftA = tile.map(line => line[0]).map(ch => ch === '#' ? '1' : '0');
@@ -41,9 +19,32 @@ const bitmaps = ({ tile }) => {
   ]
 }
 
+const parse = (lines) => {
+  lines.push("");
+  let result = [];
+  let tile = [];
+  let number = 0;
+  for (const line of lines) {
+    const re = /Tile ([0-9]+):/.exec(line);
+    if (re) {
+      number = re[1];
+      continue;
+    }
+
+    if (line === "") {
+      result.push({ number, tile, bmp: bitmaps(tile) });
+      tile = [];
+      continue;
+    }
+
+    tile.push(line.split(''));
+  }
+  return result;
+}
+
 const sides = ['T', 'L', 'B', 'R', 'TI', 'LI', 'BI', 'RI'];
 
-const find = (bmps, tile, side) => {
+const find = (tiles, tile, side) => {
   const nexts = {
     L: 'R',
     R: 'L',
@@ -56,11 +57,11 @@ const find = (bmps, tile, side) => {
   };
 
   const si = sides.indexOf(side);
-  const val = tile[si];
+  const val = tile.bmp[si];
 
-  for (const j in bmps) {
-    const t2 = bmps[j];
-    if (tile === t2) continue;
+  for (const j in tiles) {
+    const t2 = tiles[j].bmp;
+    if (tile === tiles[j]) continue;
     const si2 = t2.indexOf(val)
     if (si2 === -1) continue;
     return [parseInt(j, 10), nexts[sides[si2]]];
@@ -68,91 +69,75 @@ const find = (bmps, tile, side) => {
   return false;
 }
 
-const traverse = (bmps, start, side) => {
+const traverse = (tiles, start, side) => {
   let next = start;
   const result = [next];
   while (true) {
-    next = findAndRotate(bmps, next, side);
-    // console.log('find', next, bmps[next])
+    next = findAndRotate(tiles, next, side);
     if (next === false) return result;
     result.push(next);
   }
 }
 
-const next90deg = {
-  L: 'B',
-  R: 'T',
-  T: 'L',
-  B: 'R',
-  LI: 'BI',
-  RI: 'TI',
-  TI: 'LI',
-  BI: 'RI',
-};
-
-const findTopLeft = (bmps) => {
-  let start = 0;
-  let letter = 'L';
-  const left = traverse(bmps, start, letter);
-  console.log('l', left);
-  if (left.length)
-    [start, letter] = left.pop();
-  letter = next90deg[letter];
-  const up = traverse(bmps, start, letter);
-  console.log('t', up)
-  if (up.length)
-    [start, letter] = up.pop();
-  return [start, letter];
+const rotate = (t) => {
+  const { tile } = t;
+  const l = tile[0].length - 1;
+  t.tile = tile.map((line, y) => line.map((val, x) => tile[l - x][y]));
+  t.bmp = bitmaps(t.tile);
 }
 
-const rotate = (bmps, i) => {
-  const [t, l, b, r, ti, li, bi, ri] = bmps[i];
-  bmps[i] = [r, t, l, b, ri, ti, li, bi];
+const flip = (t) => {
+  const { tile } = t;
+  const l = tile[0].length - 1;
+  t.tile = tile.map((line, y) => line.map((val, x) => tile[y][l - x]));
+  t.bmp = bitmaps(t.tile);
 }
 
-const flip = (bmps, i) => {
-  const [t, l, b, r, ti, li, bi, ri] = bmps[i];
-  bmps[i] = [ti, l, bi, r, t, li, b, ri];
+const flipv = (t) => {
+  const { tile } = t;
+  const l = tile[0].length - 1;
+  t.tile = tile.map((line, y) => line.map((val, x) => tile[l - y][x]));
+  t.bmp = bitmaps(t.tile);
 }
 
-const findAndRotate = (bmps, start, dir) => {
-  const f = find(bmps, bmps[start], dir);
+const findAndRotate = (tiles, start, dir) => {
+  const f = find(tiles, tiles[start], dir);
   if (!f) return false;
   let [next, letter] = f;
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  flip(bmps, next); // flip horizontally
-  [next, letter] = find(bmps, bmps[start], dir);
+  flip(tiles[next]); // flip horizontally
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  // rotate(bmps, next);
-  flip(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  // rotate(tiles[next]);
+  flip(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
-  rotate(bmps, next);
-  [next, letter] = find(bmps, bmps[start], dir);
+  rotate(tiles[next]);
+  [next, letter] = find(tiles, tiles[start], dir);
   if (letter === dir) return next;
   console.log('fail')
   return false;
@@ -160,25 +145,26 @@ const findAndRotate = (bmps, start, dir) => {
 
 const work = (lines) => {
   const tiles = parse(lines);
-  const bmps = tiles.map(bitmaps);
 
   const size = Math.sqrt(tiles.length);
   const field = Array.from(Array(size)).map(() => Array.from(Array(size).fill(-1)));
 
-  const h = traverse(bmps, 0, 'L');
+  const h = traverse(tiles, 0, 'L');
+  console.log(h)
   const left = h[h.length - 1];
 
-  const l2 = traverse(bmps, left, 'B');
+  const l2 = traverse(tiles, left, 'B');
   const bottom = l2[l2.length - 1];
 
-  const row1 = traverse(bmps, bottom, 'R');
+  const row1 = traverse(tiles, bottom, 'R');
   field[field.length - 1] = row1;
 
   for (const x in row1) {
-    let col = traverse(bmps, row1[x], 'T');
-    let col2 = traverse(bmps, row1[x], 'B');
+    let col = traverse(tiles, row1[x], 'T');
+    let col2 = traverse(tiles, row1[x], 'B');
     if (col.length === 1 && col2.length !== 1) {
       col = col2;
+      flipv(tiles, row1[x]);
     }
     let y = field.length - 1;
     while (col.length) {
@@ -188,26 +174,55 @@ const work = (lines) => {
     }
   }
 
-  // console.log(field.map(line => line.join()));
-
-  const bitmap = Array.from(Array(size * 10)).map(() => Array.from(Array(size * 10).fill('.')));
+  const bitmap = Array.from(Array(size * 8)).map(() => Array.from(Array(size * 8).fill('.')));
 
   field.forEach((row, y) => {
     row.forEach((id, x) => {
-      let X = x * 10;
-      let Y = y * 10;
+      let X = x * 8;
+      let Y = y * 8;
       tiles[id].tile.forEach((tilerow, ty) => {
         tilerow.forEach((v, tx) => {
-          bitmap[Y + ty][X + tx] = v;
+          if (ty === 0 || tx === 0 || ty === 9 || tx === 9) return;
+          bitmap[Y + ty - 1][X + tx - 1] = v;
         });
       })
     })
   })
 
-  console.log(bitmap.map(line => line.join('')).join('\n') + '\n');
+  const cnt = { tile: bitmap };
+  rotate(cnt);
+  console.log(cnt.tile.map(line => line.join('')).join('\n') + '\n');
 
-  return [];
+  const monster = [
+    '..................#.',
+    '#    ##    ##    ###',
+    '.#  #  #  #  #  #   ',
+  ];
+
+  const f = cnt.tile.map((line, y) =>
+    line.map((v1, x) => {
+      const found = monster.every((line, my) =>
+        line.split("").every((v2, mx) => {
+          if (v2 !== '#') return true;
+          if (!cnt.tile[y + my]) return false;
+          return cnt.tile[y + my][x + mx] === '#';
+        })
+      );
+      if (!found) return '.';
+
+      monster.forEach((line, my) =>
+        line.split("").forEach((v2, mx) => {
+          if (v2 !== '#') return true;
+          cnt.tile[y + my][x + mx] = 'O'
+        })
+      );
+    })
+  )
+
+  console.log(cnt.tile.map(line => line.join('')).join('\n') + '\n');
+
+  return cnt.tile.map(line => line.join('')).join('').split("").filter(a => a === '#').length;
 }
 
-assert(work(file('test.txt')), 20899048083289);
-assert(work(file('input.txt')), 17148689442341);
+assert(work(file('test.txt')), 273);
+assert(work(file('input.txt')), 2009);
