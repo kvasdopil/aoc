@@ -52,4 +52,4 @@ Player 2:
 10`.trim().split("\n");
 
 assert(work(test), 291);
-assert(work(file('input.txt')), 33434);
+assert(work(file('input.txt')), 31657);
