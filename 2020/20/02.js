@@ -72,9 +72,10 @@ const traverse = (bmps, start, side) => {
   let next = start;
   const result = [next];
   while (true) {
-    result.push(next);
-    next = findAndRotate(bmps, next, 'L');
+    next = findAndRotate(bmps, next, side);
+    // console.log('find', next, bmps[next])
     if (next === false) return result;
+    result.push(next);
   }
 }
 
@@ -111,7 +112,7 @@ const rotate = (bmps, i) => {
 
 const flip = (bmps, i) => {
   const [t, l, b, r, ti, li, bi, ri] = bmps[i];
-  bmps[i] = [ti, li, bi, ri, t, l, b, r];
+  bmps[i] = [ti, l, bi, r, t, li, b, ri];
 }
 
 const findAndRotate = (bmps, start, dir) => {
@@ -128,6 +129,19 @@ const findAndRotate = (bmps, start, dir) => {
   rotate(bmps, next);
   [next, letter] = find(bmps, bmps[start], dir);
   if (letter === dir) return next;
+  flip(bmps, next); // flip horizontally
+  [next, letter] = find(bmps, bmps[start], dir);
+  if (letter === dir) return next;
+  rotate(bmps, next);
+  [next, letter] = find(bmps, bmps[start], dir);
+  if (letter === dir) return next;
+  rotate(bmps, next);
+  [next, letter] = find(bmps, bmps[start], dir);
+  if (letter === dir) return next;
+  rotate(bmps, next);
+  [next, letter] = find(bmps, bmps[start], dir);
+  if (letter === dir) return next;
+  // rotate(bmps, next);
   flip(bmps, next);
   [next, letter] = find(bmps, bmps[start], dir);
   if (letter === dir) return next;
@@ -151,41 +165,46 @@ const work = (lines) => {
   const size = Math.sqrt(tiles.length);
   const field = Array.from(Array(size)).map(() => Array.from(Array(size).fill(-1)));
 
-  const h = traverse(bmps, 0, 'L').pop()
-  console.log(h);
+  const h = traverse(bmps, 0, 'L');
+  const left = h[h.length - 1];
 
-  const t = traverse(bmps, h, 'T');
-  console.log(t);
+  const l2 = traverse(bmps, left, 'B');
+  const bottom = l2[l2.length - 1];
 
-  // next = 0;
-  // while (next !== false) {
-  //   console.log(next);
-  //   next = findAndRotate(bmps, next, 'R');
-  // }
-  // next = findAndRotate(bmps, next, 'L');
-  // console.log(next);
+  const row1 = traverse(bmps, bottom, 'R');
+  field[field.length - 1] = row1;
 
+  for (const x in row1) {
+    let col = traverse(bmps, row1[x], 'T');
+    let col2 = traverse(bmps, row1[x], 'B');
+    if (col.length === 1 && col2.length !== 1) {
+      col = col2;
+    }
+    let y = field.length - 1;
+    while (col.length) {
+      const val = col.shift();
+      field[y][x] = val;
+      y--;
+    }
+  }
 
-  // console.log(find(bmps, bmps[0]));
-  //  rotate(bmps, i);
-  //  console.log(find(bmps, bmps[0]));
+  // console.log(field.map(line => line.join()));
 
-  // const [start, R, B] = findTopLeft(bmps);
-  // const line = traverse(bmps, start, R);
-  // console.log(start, R, B)
-  // field[0][0] = start;
-  // line.forEach(([idx], i) => {
-  //   field[0][i + 1] = idx;
-  // });
+  const bitmap = Array.from(Array(size * 10)).map(() => Array.from(Array(size * 10).fill('.')));
 
-  // console.log(
-  //   left,
-  //   right,
-  //   top,
-  //   bottom
-  // );
+  field.forEach((row, y) => {
+    row.forEach((id, x) => {
+      let X = x * 10;
+      let Y = y * 10;
+      tiles[id].tile.forEach((tilerow, ty) => {
+        tilerow.forEach((v, tx) => {
+          bitmap[Y + ty][X + tx] = v;
+        });
+      })
+    })
+  })
 
-  console.log(field.map(line => line.join()));
+  console.log(bitmap.map(line => line.join('')).join('\n') + '\n');
 
   return [];
 }
