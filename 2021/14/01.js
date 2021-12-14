@@ -17,7 +17,7 @@ const match = (rules, start) => {
     //console.log('cur', cur.val)
     rules.forEach(([src, letter]) => {
       if (src[0] !== cur.val || src[1] !== next.val) return;
-      console.log('match', src, letter)
+      // console.log('match', src, letter)
       cur.next = { val: letter, next: cur.next };
     });
     cur = next;
@@ -48,14 +48,14 @@ const work = (lines, steps) => {
   }
 
   while (steps) {
-    console.log("step");
+    // console.log("step");
     match(rules, head.next);
     steps--;
-    console.log(values(head.next).join(''))
+    // console.log(values(head.next).join(''))
   }
 
   const counts = cts(head.next);
-  console.log(counts);
+  // console.log(counts);
   const freqs = Object.entries(counts).sort(([, a], [, b]) => b - a);
   const [, a] = freqs.shift();
   const [, b] = freqs.pop();
@@ -81,7 +81,7 @@ BC -> B
 CC -> N
 CN -> C`.trim().split("\n");
 
-// assert(work(test, 10), 1588);
-assert(work(file('input.txt'), 2), 2937);
+assert(work(test, 10), 1588);
+assert(work(file('input.txt'), 10), 2937);
 
 
