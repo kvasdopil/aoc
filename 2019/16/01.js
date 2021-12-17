@@ -51,4 +51,4 @@ assert(
   "52432133292998606880495974869873"
 ); // 52432133
 
-console.log(solve(file("./16.txt")[0], 100));
+assert(solve(file("input.txt").shift(), 100).slice(0, 8), "53296082");
