@@ -1,5 +1,3 @@
-const { isNumberObject } = require("util/types");
-
 const assert = (a, b = true) => {
   if (JSON.stringify(a) === JSON.stringify(b)) {
     console.log("test passed");
