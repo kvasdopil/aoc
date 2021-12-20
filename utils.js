@@ -43,4 +43,6 @@ function permutation(array) {
   return true;
 }
 
-module.exports = { assert, file, uniq, permutation };
+const array2d = (x, y) => Array.from(Array(y)).map(line => Array.from(Array(x)).fill(0));
+
+module.exports = { assert, file, uniq, permutation, array2d };
