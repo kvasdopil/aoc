@@ -41,7 +41,7 @@ const work = (lines, count) => {
 
   while (count) {
     tiles = step(mapping, tiles);
-    console.log(tiles.map(line => line.map(a => a ? '#' : ' ').join('')).join('\n'))
+    // console.log(tiles.map(line => line.map(a => a ? '#' : ' ').join('')).join('\n'))
     count--;
   }
   return tiles.map(line => line.filter(a => a).length).reduce((a, b) => a + b, 0);
