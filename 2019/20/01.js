@@ -42,6 +42,7 @@ const findWays = (map, [sx, sy]) => {
 }
 
 const mergeGraph = (graph) => {
+  // calculate how many times each point is used
   const count = {};
   graph.forEach(([a, b]) => {
     if (!count[a]) count[a] = 0;
@@ -50,6 +51,7 @@ const mergeGraph = (graph) => {
     count[b]++;
   });
 
+  // find points that only used twice, and merge them
   Object.entries(count).filter(([key, val]) => val === 2 && key !== 'A' && key !== 'Z').forEach(([key, val]) => {
     const a = graph.find(([src, dst]) => src === key || dst === key);
     graph = graph.filter(item => item !== a); // a is removed 
@@ -61,15 +63,16 @@ const mergeGraph = (graph) => {
     b[2] += a[2] - 1;
   })
 
+  // reorder points, so we can detect duplicates
   graph = graph.map(([a, b, len]) => a > b ? [b, a, len] : [a, b, len]);
 
+  // find duplicates and select smallest one
   const result = {};
   for (const [a, b, len] of graph) {
     const key = `${a}:${b}`;
     if (!result[key]) result[key] = [a, b, len];
     result[key] = [a, b, Math.min(len, result[key][2])];
   }
-
   graph = Object.values(result);
 
   return graph;
