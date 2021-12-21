@@ -118,7 +118,21 @@ const buildGraph = map => {
 const work = (lines) => {
   const map = lines.map(line => line.split(''));
 
+
+  map[0].fill('#');
+  map[1] = map[1].map(ch => (ch === 'A' || ch === 'Z') ? ch : '#');
+  map[map.length - 1].fill('#');
+  map[map.length - 2] = map[map.length - 2].map(ch => (ch === 'A' || ch === 'Z') ? ch : '#');
+  map.forEach((line) => {
+    line[0] = '#';
+    line[line.length - 1] = '#';
+    line[1] = (line[1] === 'A' || line[1] === 'Z') ? line[1] : '#';
+    line[line.length - 2] = (line[line.length - 2] === 'A' || line[line.length - 2] === 'Z') ? line[line.length - 2] : '#';
+  })
+
   removeDeadEnds(map);
+  console.log(map.map(line => line.map(ch => ch).join('')).join('\n'));
+
   let graph = buildGraph(map);
 
   graph = mergeGraph(graph);
