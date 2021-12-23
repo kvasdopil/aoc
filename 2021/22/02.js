@@ -71,25 +71,33 @@ const work = (lines) => {
 
   let sum = 0;
 
+  for (let i = 1; i < xs.length; i++) {
+    const [xa, xb] = [xs[i - 1], xs[i]];
+    if (xa == xb) continue;
+    let i1 = items.filter(([x1, x2]) => x1 <= xa && xa <= x2);
+    if (!i1.length) continue;
 
-  for (let i = 1; i < xs.length; i++)
-    for (let j = 1; j < ys.length; j++)
+    for (let j = 1; j < ys.length; j++) {
+      const [ya, yb] = [ys[j - 1], ys[j]];
+      if (ya === yb) continue;
+      const i2 = i1.filter(([, , y1, y2]) => y1 <= ya && ya <= y2);
+      if (!i2.length) continue;
+
       for (let k = 1; k < zs.length; k++) {
-        let on = 0;
-        for (const [x1, x2, y1, y2, z1, z2, mul] of items) {
-          const [xa, ya, za] = [xs[i - 1], ys[j - 1], zs[k - 1]];
-          const [xb, yb, zb] = [xs[i], ys[j], zs[k]];
-          if (xa == xb || ya == yb || za == zb) continue;
-          if (x1 <= xa && xa < x2 && y1 <= ya && ya < y2 && z1 <= za && za < z2) {
-            // console.log(xa, xb);
-            // console.log(ya, yb);
-            // console.log(za, zb);
-            on = mul * (xb - xa) * (zb - za) * (yb - ya);
-            // console.log('on', on)
-          }
-        }
-        sum += on;
+        const [za, zb] = [zs[k - 1], zs[k]];
+        if (za == zb) continue;
+
+        const i3 = i2.filter(([, , , , z1, z2]) => z1 <= za && za <= z2).pop();
+
+        if (!i3) continue;
+        const [, , , , , , mul] = i3;
+
+        sum += mul * (xb - xa) * (zb - za) * (yb - ya);
       }
+    }
+
+    console.log(i, 'of', xs.length)
+  }
 
   return sum;
 }
@@ -127,5 +135,5 @@ on x=-41..9,y=-7..43,z=-33..15
 `.trim().split("\n");
 
 assert(work(t3), 590784);
-// assert(work(file('test.txt')), 2758514936282235);
-// assert(work(file('input.txt')), 1752);
+assert(work(file('test.txt')), 2758514936282235);
+assert(work(file('input.txt')), 1201259791805392);
