@@ -1,6 +1,62 @@
-const { file, assert } = require('../../utils')
+const { assert } = require('../../utils')
+
+let cache = {};
+const STEPS = [
+  // -2 -1 1 2
+  [-1, -1, 2, 2], // left wing
+  [-1, 2, 2, 2], // wall
+  [-1, 2, 2, -1], // a
+  [2, 2, 2, 2],  // wall
+  [-1, 2, 2, -1],  // b
+  [2, 2, 2, 2],  // wall
+  [-1, 2, 2, -1],  // c
+  [2, 2, 2, -1],  // wall
+  [2, 2, -1, -1],  // right wing
+]
+let scores = { A: 1, B: 10, C: 100, D: 1000 };
+const walk = ({ data, score = 0 }) => {
+  const key = data.map(s => (s[1] || '-') + (s[0] || '-')).join('');
+  // if (key === "--AAx-BBx-CCx-DD--") { console.log('yes'); return {}; }
+  if (cache[key]) { return {}; }
+  cache[key] = data;
+
+  const nexts = {};
+  data.forEach((s, i) => {
+    if (s.length === 0) return;
+    if (s[s.length - 1] === 'x') return;
+    if (i === 1 && s.length === 1 && s[0] === 'A') return;
+    if (i === 3 && s.length === 1 && s[0] === 'B') return;
+    if (i === 5 && s.length === 1 && s[0] === 'C') return;
+    if (i === 7 && s.length === 1 && s[0] === 'D') return;
+    for (const m in [0, 1, 2, 3]) {
+      const move = [-2, -1, 1, 2][m];
+      let steps = STEPS[i][m];
+      // if (steps === -1) continue;
+      if (s.length === 1) steps++;
+
+      if (((i % 2) === 1) && ((move % 2) === 0)) continue;
+      const tgt = data[i + move];
+      if (!tgt) continue;
+      if (tgt.length === 2) continue;
+      if (tgt.length === 0) steps++;
+
+      const copy = data.map(ss => [...ss]);
+      const letter = copy[i].pop();
+      copy[i + move].push(letter);
+
+      const key2 = copy.map(s => (s[1] || '-') + (s[0] || '-')).join('');
+      if (cache[key2]) continue;
+
+      nexts[key2] = { data: copy, score: score + steps * scores[letter] };
+    }
+  });
+
+  return nexts;
+}
 
 const work = (line) => {
+  cache = {};
+
   const stacks = [
     [],
     [line[3], line[2]],
@@ -13,66 +69,17 @@ const work = (line) => {
     [],
   ];
 
-  console.log(stacks);
-
-  const cache = {};
-
-  const walk = (st) => {
-    const key = st.map(s => (s[1] || '-') + (s[0] || '-')).join('');
-    if (key === "--AAx-BBx-CCx-DD--") { console.log('yes'); return 1; }
-    if (cache[key]) { return 0; }
-    // if (/^--BABx-D-xCC-xDA--/.test(key)) console.log(key, nest);
-    cache[key] = st;
-
-    // if (nest > 1000) return 0;
-
-    // console.log(nest, key);
-
-    const nexts = {};
-
-    st.forEach((s, i) => {
-      if (s.length === 0) return;
-      if (s[s.length - 1] === 'x') return;
-      if (i === 1 && s.length === 1 && s[0] === 'A') return;
-      if (i === 3 && s.length === 1 && s[0] === 'B') return;
-      if (i === 5 && s.length === 1 && s[0] === 'C') return;
-      if (i === 7 && s.length === 1 && s[0] === 'D') return;
-      for (const move of [-2, -1, 1, 2]) {
-        if (((i % 2) === 1) && ((move % 2) === 0)) continue;
-        const tgt = st[i + move];
-        if (!tgt) continue;
-        if (tgt.length === 2) continue;
-
-        // if (key === '---A-xBBDxCCDx---A') console.log(key, s, i, i + move);
-        const copy = st.map(ss => [...ss]);
-        const val = copy[i].pop();
-        copy[i + move].push(val);
-        // nexts.push(copy);
-
-        const key2 = copy.map(s => (s[1] || '-') + (s[0] || '-')).join('');
-        if (cache[key2]) continue;
-        // if (key === '---A-xBBDxCCDx---A') console.log(key2);
-
-        nexts[key2] = copy;
-      }
-    });
-
-    return nexts;
-  }
-
-  let res = walk(stacks);
-  for (let i = 0; i < 50; i++) {
+  let res = walk({ data: stacks });
+  while (Object.entries(res).length) {
     let res2 = {};
     for (const [key, val] of Object.entries(res)) {
-      if (key === '--AA-xBB-xCC-xDD--') console.log('yay', key);
+      if (key === '--AA-xBB-xCC-xDD--') console.log('yay', key, val.score);
       for (const [k2, v2] of Object.entries(walk(val))) {
         res2[k2] = v2;
       }
     }
     res = res2;
-    console.log(i, Object.keys(res).length);
-
-
+    console.log(Object.keys(res).length);
   }
 }
 

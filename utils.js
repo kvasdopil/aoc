@@ -43,6 +43,13 @@ function permutation(array) {
   return true;
 }
 
-const array2d = (x, y) => Array.from(Array(y)).map(line => Array.from(Array(x)).fill(0));
+const array2d = (x, y) => Array.from(Array(y)).map(() => Array.from(Array(x)).fill(0));
+const array3d = (x, y, z) =>
+  Array.from(Array(z))
+    .map(() => Array.from(Array(y))
+      .map(() => Array.from(Array(x))
+        .fill(0)
+      )
+    );
 
-module.exports = { assert, file, uniq, permutation, array2d };
+module.exports = { assert, file, uniq, permutation, array2d, array3d };

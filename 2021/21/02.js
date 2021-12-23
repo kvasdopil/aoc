@@ -4,7 +4,7 @@ const { file, assert, array2d } = require('../../utils')
 // each value has 'a number of universes' created by it
 const outcomes = [0, 0, 0, 1, 3, 6, 7, 6, 3, 1];
 
-const unpack = (state) => [state % 10, Math.floor((state) / 10)];
+const unpack = (state) => [state % 10, Math.floor(state / 10)];
 const pack = (position, score) => score * 10 + position;
 
 const next = (position, score) =>
@@ -16,11 +16,11 @@ const next = (position, score) =>
     return [pack(newPosition, newScore), count];
   });
 
-const work = (lines) => {
-  const [p1, p2] = lines.map(line => parseInt(line.split(": ").pop(), 10));
+const work = (pp1, pp2) => {
+  const [p1, p2] = [pp1 - 1, pp2 - 1];
 
   let states = array2d(200, 200);
-  states[pack(p1 - 1, 0)][pack(p2 - 1, 0)] = 1;
+  states[pack(p1, 0)][pack(p2, 0)] = 1;
 
   let win1 = 0;
   let win2 = 0;
@@ -82,9 +82,6 @@ const work = (lines) => {
   return [win1, win2];
 }
 
-const test = `Player 1 starting position: 4
-Player 2 starting position: 8`.trim().split("\n");
-
-assert(work(test), [444356092776315, 341960390180808]);
-//assert(work(file('input.txt')), 913560);
+assert(work(4, 8), [444356092776315, 341960390180808]);
+// assert(work(file('input.txt')), 110271560863819);
 
