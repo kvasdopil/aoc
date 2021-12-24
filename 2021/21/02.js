@@ -1,87 +1,39 @@
-const { file, assert, array2d } = require('../../utils')
+const { file, assert } = require('../../utils')
 
-// instead of 3 dices we roll 1 dice with values 3-9
-// each value has 'a number of universes' created by it
-const outcomes = [0, 0, 0, 1, 3, 6, 7, 6, 3, 1];
+let cache = {};
 
-const unpack = (state) => [state % 10, Math.floor(state / 10)];
-const pack = (position, score) => score * 10 + position;
+const solve = (p1, p2) => {
+  const key = `${p1.pos},${p1.score},${p2.pos},${p2.score}`;
+  if (cache[key]) return cache[key];
 
-const next = (position, score) =>
-  [3, 4, 5, 6, 7, 8, 9].map(dice => {
-    const count = outcomes[dice];
-    const newPosition = (position + dice) % 10;
-    const newScore = score + 1 + newPosition;
+  // console.log(key);
 
-    return [pack(newPosition, newScore), count];
-  });
-
-const work = (pp1, pp2) => {
-  const [p1, p2] = [pp1 - 1, pp2 - 1];
-
-  let states = array2d(200, 200);
-  states[pack(p1, 0)][pack(p2, 0)] = 1;
-
-  let win1 = 0;
-  let win2 = 0;
-  while (states.some(line => line.some(a => a))) {
-    let sum = 0;
-    let nextStates = states.map(line => line.map(() => 0));
-    states.forEach((line, s1) => {
-      const [pos1, score1] = unpack(s1);
-      line.forEach((count, s2) => {
-        if (!count) return;
-        // console.log('processing', s1, s2, count);
-        next(pos1, score1).forEach(([nn, newcount]) => {
-          if (nn >= 200) {
-            win1 += count * newcount;
-          } else {
-            nextStates[nn][s2] += count * newcount;
-            sum += count * newcount;
-          }
-        })
+  let [win1, win2] = [0, 0];
+  [1, 2, 3].forEach(a => {
+    [1, 2, 3].forEach(b => {
+      [1, 2, 3].forEach(c => {
+        const pos = (p1.pos + a + b + c) % 10;
+        const score = p1.score + 1 + pos;
+        if (score >= 21) {
+          win1++;
+        } else {
+          const [w2, w1] = solve(p2, { pos, score });
+          win1 += w1;
+          win2 += w2;
+        }
       })
-    });
+    })
+  })
 
-    states = nextStates;
-    // states.forEach((line, s1) => {
-    //   const [pos1, score1] = unpack(s1);
-    //   line.forEach((count, s2) => {
-    //     const [pos2, score2] = unpack(s2);
-    //     if (count)
-    //       console.log(s1, s2, count);
-    //   });
-    // });
-    // break;
-
-    console.log(win1, win2, sum);
-
-    sum = 0;
-    nextStates = states.map(line => line.map(() => 0));
-    states.forEach((line, s1) => {
-      line.forEach((count, s2) => {
-        if (!count) return;
-        const [pos2, score2] = unpack(s2);
-        next(pos2, score2).forEach(([nn, newcount]) => {
-          if (nn >= 200) {
-            win2 += count * newcount;
-          } else {
-            nextStates[s1][nn] += count * newcount;
-            sum += count * newcount;
-          }
-        })
-      })
-    });
-
-    console.log(win1, win2, sum);
-    states = nextStates;
-
-    // break;
-  }
-
+  cache[key] = [win1, win2];
   return [win1, win2];
 }
 
+const work = (a, b) => {
+  cache = {};
+  return solve({ pos: a, score: 0 }, { pos: b, score: 0 });
+}
+
 assert(work(4, 8), [444356092776315, 341960390180808]);
-// assert(work(file('input.txt')), 110271560863819);
+assert(work(4, 1), 110271560863819);
 
