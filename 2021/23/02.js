@@ -88,18 +88,7 @@ const walk = ({ data, score = 0, log = [] }) => {
       const log2 = [...log, [key2, newscore]];
       const entry = { data: copy, score: newscore, log: log2 };;
 
-      // if (key === "---AAxBB-xCC-xDD--") {
-      //   console.log(key, '->', key2);
-      //   console.log(nexts[key2]);
-      // }
-      // if (cache[key2]) {
-      //   if (cache[key2].score < entry.score)
-      //     cache[key2] = entry;
-      //   continue;
-      // }
-
       if (!nexts[key2] || nexts[key2].score > entry.score) {
-        //if (nexts[key2] && key2 == '--AA-xBB-xCC-xDD--') console.log('ababab')
         nexts[key2] = entry;
       }
     }
@@ -112,7 +101,7 @@ const work = (line) => {
   cache = {};
 
   const stacks = [
-    ['x'],
+    [],
     [line[3], line[2]],
     ['x'],
     [line[7], line[6]],
@@ -120,7 +109,7 @@ const work = (line) => {
     [line[11], line[10]],
     ['x'],
     [line[15], line[14]],
-    [],
+    ['x'],
   ];
 
   const results = [];
@@ -129,7 +118,7 @@ const work = (line) => {
   while (Object.entries(res).length) {
     let res2 = {};
     for (const [key, val] of Object.entries(res)) {
-      if (key === '-xAA-xBB-xCC-xDD--') {
+      if (key === '--AA-xBB-xCC-xDD-x') {
         results.push(val.score);
         console.log('yay', key, val.score);
         console.log(val.log);
@@ -148,50 +137,4 @@ const work = (line) => {
 }
 
 assert(work('--BA-xCD-xBC-xDA--'), 12523); // actually 12521 but not considering sides
-assert(work('--AC-xDC-xAD-xBB--'), 13495); // 13499 high
-/*
-
-
-
---BA-xCD-xBC-xDA--
---BA-xCDBx-C-xDA--
---BABxCD-x-C-xDA--
---BABx-DCx-C-xDA--
---BABx-D-xCC-xDA--
---BABx--DxCC-xDA--
---BA-x-BDxCC-xDA--
----ABx-BDxCC-xDA--
----A-xBBDxCC-xDA--
----A-xBBDxCCDx-A--
----A-xBBDxCCDx---A
----A-xBBDxCC-x-D-A
----A-xBB-xCCDx-D-A
----A-xBB-xCC-xDD-A
----A-xBB-xCCAxDD--
----A-xBBAxCC-xDD--
----AAxBB-xCC-xDD--
---AA-xBB-xCC-xDD--
-*/
-
-
-
-
-
-// '--BA-xCD-xBC-xDA--',
-// '--BA-xCD-xBC-x-A-D',
-// '--BA-xCD-xBCAx---D',
-// '--BA-xCD-xBCAx-D--',
-// '--BA-xCDAxBC-x-D--',
-// '--BAAxCD-xBC-x-D--',
-// '--BAAxCDBx-C-x-D--',
-// '-ABA-xCDBx-C-x-D--',
-// '-ABABxCD-x-C-x-D--',
-// '-ABABx-DCx-C-x-D--',
-// '-ABABx-D-xCC-x-D--',
-// '-ABABx--DxCC-x-D--',
-// '-ABABx---xCCDx-D--',
-// '-ABABx---xCC-xDD--',
-// '-ABA-x-B-xCC-xDD--',
-// '-A-ABx-B-xCC-xDD--',
-// '-A-A-xBB-xCC-xDD--',
-// '--AA-xBB-xCC-xDD--'
+assert(work('--AC-xDC-xAD-xBB--'), 1752); // 13499 high
