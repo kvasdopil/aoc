@@ -1,4 +1,3 @@
-const { log } = require('console');
 const { assert } = require('../../utils')
 
 let cache = {};
@@ -15,33 +14,9 @@ const STEPS = [
   [2, 2, -1, -1],  // right wing
 ]
 
-const DBG = [
-  '--BA-xCD-xBC-xDA--', // 0
-  '--BA-xCDBx-C-xDA--', // 20
-  '--BABxCD-x-C-xDA--', // 40
-  '--BABx-DCx-C-xDA--', // 240
-  '--BABx-D-xCC-xDA--', // 440
-  '--BABx--DxCC-xDA--', // 3440
-  '--BA-x-BDxCC-xDA--', // 3470 
-  '---ABx-BDxCC-xDA--', // 3490
-  '---A-xBBDxCC-xDA--', // 3510
-  '---A-xBBDxCCDx-A--', // 5510
-  '---A-xBBDxCCDx---A', // 5513
-  '---A-xBBDxCC-x-D-A', // 8513
-  '---A-xBB-xCCDx-D-A', // 10513
-  '---A-xBB-xCC-xDD-A', // 12513
-  '---A-xBB-xCCAxDD--', // 12515
-  '---A-xBBAxCC-xDD--', // 12517
-  '---AAxBB-xCC-xDD--', // 12519
-  '--AA-xBB-xCC-xDD--', // 12521
-];
-
 let scores = { A: 1, B: 10, C: 100, D: 1000 };
 const walk = ({ data, score = 0, log = [] }) => {
   const key = data.map(s => (s[1] || '-') + (s[0] || '-')).join('');
-  // if (key === "--AAx-BBx-CCx-DD--") { console.log('yes'); return {}; }
-
-  // if (DBG.includes(key)) console.log('dbg', key, score, log);
 
   if (cache[key] && cache[key].score <= score) { return {}; }
   cache[key] = { data, score, log };
@@ -60,25 +35,22 @@ const walk = ({ data, score = 0, log = [] }) => {
       if (steps === -1) continue;
       if (s.length === 1) steps++;
 
-      // if (((i % 2) === 1) && ((move % 2) === 0)) continue;
       const tgt = data[i + move];
       if (!tgt) continue;
-      if (tgt.length === 2) continue;
+      if (tgt.length === 4) continue;
       if (tgt.length === 0) steps++;
 
       const copy = data.map(ss => [...ss]);
       const letter = copy[i].pop();
 
-      // // if (dbg.indexOf(key) console.log(key, s, i, score, log);
-
       if (i + move === 1 && letter !== 'A') continue;
       if (i + move === 3 && letter !== 'B') continue;
       if (i + move === 5 && letter !== 'C') continue;
       if (i + move === 7 && letter !== 'D') continue;
-      if (i + move === 1 && tgt.length === 1 && tgt[0] !== 'A') continue;
-      if (i + move === 3 && tgt.length === 1 && tgt[0] !== 'B') continue;
-      if (i + move === 5 && tgt.length === 1 && tgt[0] !== 'C') continue;
-      if (i + move === 7 && tgt.length === 1 && tgt[0] !== 'D') continue;
+      if (i + move === 1 && tgt.some(i => i !== letter)) continue;
+      if (i + move === 3 && tgt.some(i => i !== letter)) continue;
+      if (i + move === 5 && tgt.some(i => i !== letter)) continue;
+      if (i + move === 7 && tgt.some(i => i !== letter)) continue;
 
       copy[i + move].push(letter);
 
@@ -97,20 +69,23 @@ const walk = ({ data, score = 0, log = [] }) => {
   return nexts;
 }
 
+const parse = (line, size = 4) => {
+  let li = line.split('')
+  const result = [];
+  while (li.length) {
+    const sub = li.slice(0, size);
+    li = li.slice(size);
+
+    while (sub[0] === '-') sub.shift();
+    result.push(sub);
+  }
+  return result;
+}
+
 const work = (line) => {
   cache = {};
 
-  const stacks = [
-    [],
-    [line[3], line[2]],
-    ['x'],
-    [line[7], line[6]],
-    ['x'],
-    [line[11], line[10]],
-    ['x'],
-    [line[15], line[14]],
-    ['x'],
-  ];
+  const stacks = parse(line);
 
   const results = [];
 
@@ -118,7 +93,7 @@ const work = (line) => {
   while (Object.entries(res).length) {
     let res2 = {};
     for (const [key, val] of Object.entries(res)) {
-      if (key === '--AA-xBB-xCC-xDD-x') {
+      if (key === '--xxAAAA-xxxBBBB-xxxCCCC-xxxDDDD--xx') {
         results.push(val.score);
         console.log('yay', key, val.score);
         console.log(val.log);
@@ -136,5 +111,5 @@ const work = (line) => {
   return Math.min(...results);
 }
 
-assert(work('--BA-xCD-xBC-xDA--'), 12523); // actually 12521 but not considering sides
-assert(work('--AC-xDC-xAD-xBB--'), 1752); // 13499 high
+assert(work('--xxBDDA-xxxCCBD-xxxBBAC-xxxDACA--xx'), 44169);
+// assert(work('--AC-xDC-xAD-xBB--'), 13495); // 13499 high

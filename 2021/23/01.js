@@ -15,33 +15,9 @@ const STEPS = [
   [2, 2, -1, -1],  // right wing
 ]
 
-const DBG = [
-  '--BA-xCD-xBC-xDA--', // 0
-  '--BA-xCDBx-C-xDA--', // 20
-  '--BABxCD-x-C-xDA--', // 40
-  '--BABx-DCx-C-xDA--', // 240
-  '--BABx-D-xCC-xDA--', // 440
-  '--BABx--DxCC-xDA--', // 3440
-  '--BA-x-BDxCC-xDA--', // 3470 
-  '---ABx-BDxCC-xDA--', // 3490
-  '---A-xBBDxCC-xDA--', // 3510
-  '---A-xBBDxCCDx-A--', // 5510
-  '---A-xBBDxCCDx---A', // 5513
-  '---A-xBBDxCC-x-D-A', // 8513
-  '---A-xBB-xCCDx-D-A', // 10513
-  '---A-xBB-xCC-xDD-A', // 12513
-  '---A-xBB-xCCAxDD--', // 12515
-  '---A-xBBAxCC-xDD--', // 12517
-  '---AAxBB-xCC-xDD--', // 12519
-  '--AA-xBB-xCC-xDD--', // 12521
-];
-
 let scores = { A: 1, B: 10, C: 100, D: 1000 };
 const walk = ({ data, score = 0, log = [] }) => {
   const key = data.map(s => (s[1] || '-') + (s[0] || '-')).join('');
-  // if (key === "--AAx-BBx-CCx-DD--") { console.log('yes'); return {}; }
-
-  // if (DBG.includes(key)) console.log('dbg', key, score, log);
 
   if (cache[key] && cache[key].score <= score) { return {}; }
   cache[key] = { data, score, log };
@@ -60,7 +36,6 @@ const walk = ({ data, score = 0, log = [] }) => {
       if (steps === -1) continue;
       if (s.length === 1) steps++;
 
-      // if (((i % 2) === 1) && ((move % 2) === 0)) continue;
       const tgt = data[i + move];
       if (!tgt) continue;
       if (tgt.length === 2) continue;
@@ -68,8 +43,6 @@ const walk = ({ data, score = 0, log = [] }) => {
 
       const copy = data.map(ss => [...ss]);
       const letter = copy[i].pop();
-
-      // // if (dbg.indexOf(key) console.log(key, s, i, score, log);
 
       if (i + move === 1 && letter !== 'A') continue;
       if (i + move === 3 && letter !== 'B') continue;
@@ -88,18 +61,7 @@ const walk = ({ data, score = 0, log = [] }) => {
       const log2 = [...log, [key2, newscore]];
       const entry = { data: copy, score: newscore, log: log2 };;
 
-      // if (key === "---AAxBB-xCC-xDD--") {
-      //   console.log(key, '->', key2);
-      //   console.log(nexts[key2]);
-      // }
-      // if (cache[key2]) {
-      //   if (cache[key2].score < entry.score)
-      //     cache[key2] = entry;
-      //   continue;
-      // }
-
       if (!nexts[key2] || nexts[key2].score > entry.score) {
-        //if (nexts[key2] && key2 == '--AA-xBB-xCC-xDD--') console.log('ababab')
         nexts[key2] = entry;
       }
     }
@@ -108,20 +70,23 @@ const walk = ({ data, score = 0, log = [] }) => {
   return nexts;
 }
 
+const parse = (line, size = 2) => {
+  let li = line.split('')
+  const result = [];
+  while (li.length) {
+    const sub = li.slice(0, size);
+    li = li.slice(size);
+
+    while (sub[0] === '-') sub.shift();
+    result.push(sub.reverse());
+  }
+  return result;
+}
+
 const work = (line) => {
   cache = {};
 
-  const stacks = [
-    ['x'],
-    [line[3], line[2]],
-    ['x'],
-    [line[7], line[6]],
-    ['x'],
-    [line[11], line[10]],
-    ['x'],
-    [line[15], line[14]],
-    [],
-  ];
+  const stacks = parse(line, 2)
 
   const results = [];
 
@@ -129,7 +94,7 @@ const work = (line) => {
   while (Object.entries(res).length) {
     let res2 = {};
     for (const [key, val] of Object.entries(res)) {
-      if (key === '-xAA-xBB-xCC-xDD--') {
+      if (key === '--AA-xBB-xCC-xDD-x') {
         results.push(val.score);
         console.log('yay', key, val.score);
         console.log(val.log);
@@ -147,51 +112,5 @@ const work = (line) => {
   return Math.min(...results);
 }
 
-assert(work('--BA-xCD-xBC-xDA--'), 12523); // actually 12521 but not considering sides
-assert(work('--AC-xDC-xAD-xBB--'), 13495); // 13499 high
-/*
-
-
-
---BA-xCD-xBC-xDA--
---BA-xCDBx-C-xDA--
---BABxCD-x-C-xDA--
---BABx-DCx-C-xDA--
---BABx-D-xCC-xDA--
---BABx--DxCC-xDA--
---BA-x-BDxCC-xDA--
----ABx-BDxCC-xDA--
----A-xBBDxCC-xDA--
----A-xBBDxCCDx-A--
----A-xBBDxCCDx---A
----A-xBBDxCC-x-D-A
----A-xBB-xCCDx-D-A
----A-xBB-xCC-xDD-A
----A-xBB-xCCAxDD--
----A-xBBAxCC-xDD--
----AAxBB-xCC-xDD--
---AA-xBB-xCC-xDD--
-*/
-
-
-
-
-
-// '--BA-xCD-xBC-xDA--',
-// '--BA-xCD-xBC-x-A-D',
-// '--BA-xCD-xBCAx---D',
-// '--BA-xCD-xBCAx-D--',
-// '--BA-xCDAxBC-x-D--',
-// '--BAAxCD-xBC-x-D--',
-// '--BAAxCDBx-C-x-D--',
-// '-ABA-xCDBx-C-x-D--',
-// '-ABABxCD-x-C-x-D--',
-// '-ABABx-DCx-C-x-D--',
-// '-ABABx-D-xCC-x-D--',
-// '-ABABx--DxCC-x-D--',
-// '-ABABx---xCCDx-D--',
-// '-ABABx---xCC-xDD--',
-// '-ABA-x-B-xCC-xDD--',
-// '-A-ABx-B-xCC-xDD--',
-// '-A-A-xBB-xCC-xDD--',
-// '--AA-xBB-xCC-xDD--'
+assert(work('--BA-xCD-xBC-xDA-x'), 12521); // actually 12521 but not considering sides
+assert(work('--AC-xDC-xAD-xBB-x'), 13495); // 13499 high
