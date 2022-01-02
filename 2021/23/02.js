@@ -14,9 +14,32 @@ const STEPS = [
   [2, 2, -1, -1],  // right wing
 ]
 
+const k = data => data.map(s => (s[3] || '-') + (s[2] || '-') + (s[1] || '-') + (s[0] || '-')).join('');
+
+const dbgs = [
+  // "--xxBDDA-xxxCCBD-xxxBBAC-xxx-ACA-Dxx", // 3 x 1000 = 3000
+  // "-AxxBDDA-xxxCCBD-xxxBBAC-xxx--CA-Dxx", // 10 x 1 = 3010
+  // "-AxxBDDA-xxxCCBD-xxx-BAC-xxx--CABDxx", // 4 x 10 = 3050
+  // "-AxxBDDA-xxxCCBD-xxx--ACBxxx--CABDxx", // 3 x 10 = 3080
+  // "AAxxBDDA-xxxCCBD-xxx---CBxxx--CABDxx", // 8 x 1 = 3088
+  // "AAxxBDDA-xxx--BD-xxx-CCCBxxx--CABDxx", // 12 x 100 = 4288
+  //"AAxxBDDA-xxx---DBxxx-CCCBxxx--CABDxx", // 4 x 10 = 4328
+  // "AAxxBDDADxxx----Bxxx-CCCBxxx--CABDxx", // 5 x 1000 = 9328
+  // "AAxxBDDADxxx-BBB-xxx-CCC-xxx--CA-Dxx",
+  // "AAxxBDDADxxx-BBB-xxxCCCC-xxx---A-Dxx",
+  // "AAxxBDDADxxx-BBB-xxxCCCC-xxx----ADxx",
+  // "AAxxBDDA-xxx-BBB-xxxCCCC-xxx---DADxx",
+  // "AAxx-DDA-xxxBBBB-xxxCCCC-xxx---DADxx",
+  // "AAxx-DDA-xxxBBBB-xxxCCCC-xxx---DADxx",
+  // "--xx-AAA-xxxBBBB-xxxCCCC-xxx-DDDADxx",
+  // "--xxAAAA-xxxBBBB-xxxCCCC-xxx-DDD-Dxx",
+]
+
 let scores = { A: 1, B: 10, C: 100, D: 1000 };
 const walk = ({ data, score = 0, log = [] }) => {
-  const key = data.map(s => (s[1] || '-') + (s[0] || '-')).join('');
+  const key = k(data);
+
+  if (dbgs.includes(key)) console.log(key, score, log);
 
   if (cache[key] && cache[key].score <= score) { return {}; }
   cache[key] = { data, score, log };
@@ -33,12 +56,13 @@ const walk = ({ data, score = 0, log = [] }) => {
       const move = [-2, -1, 1, 2][m];
       let steps = STEPS[i][m];
       if (steps === -1) continue;
-      if (s.length === 1) steps++;
+      steps++;
+      steps += (3 - s.length);
 
       const tgt = data[i + move];
       if (!tgt) continue;
       if (tgt.length === 4) continue;
-      if (tgt.length === 0) steps++;
+      steps += (3 - tgt.length);
 
       const copy = data.map(ss => [...ss]);
       const letter = copy[i].pop();
@@ -54,7 +78,7 @@ const walk = ({ data, score = 0, log = [] }) => {
 
       copy[i + move].push(letter);
 
-      const key2 = copy.map(s => (s[1] || '-') + (s[0] || '-')).join('');
+      const key2 = k(copy);
 
       const newscore = score + steps * scores[letter];
       const log2 = [...log, [key2, newscore]];
@@ -77,7 +101,7 @@ const parse = (line, size = 4) => {
     li = li.slice(size);
 
     while (sub[0] === '-') sub.shift();
-    result.push(sub);
+    result.push(sub.reverse());
   }
   return result;
 }
@@ -108,8 +132,8 @@ const work = (line) => {
     console.log(Object.keys(res).length);
   }
 
-  return Math.min(...results);
+  return results.sort();
 }
 
-assert(work('--xxBDDA-xxxCCBD-xxxBBAC-xxxDACA--xx'), 44169);
-// assert(work('--AC-xDC-xAD-xBB--'), 13495); // 13499 high
+// assert(work('--xxBDDA-xxxCCBD-xxxBBAC-xxxDACA--xx'), 44169);
+assert(work('--xxADDC-xxxDCBC-xxxABAD-xxxBACB--xx'), 13495); // 43029 low
