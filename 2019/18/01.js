@@ -167,6 +167,6 @@ const t5 = `
 #################`.trim().split('\n');
 // assert(work(t5, 2), 136)
 
-assert(work(file('input.txt'), 2), 1)
+assert(work(file('input.txt'), 4), 1)
 
 // 6000 too high
