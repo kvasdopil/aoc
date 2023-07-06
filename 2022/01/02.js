@@ -21,4 +21,4 @@ function work(text) {
 }
 
 assert(work(test1), 45000);
-assert(work(file('01.txt').join("\n")), 213958);
+assert(work(file('input.txt').join("\n")), 213958);
